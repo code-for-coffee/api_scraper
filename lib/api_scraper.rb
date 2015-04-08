@@ -15,7 +15,7 @@ class Fetcher
   # request
   def request
     @response = HTTParty.get(@uri)
-    return @response.to_s
+    return @response
   end
 end
 
@@ -28,9 +28,10 @@ class Model
   end
   # save
   def save
-    File.open(@destination_filename, "w+") do |file|
-      file.write(@data)
-    end
+    File.write(@destination_filename, @data.to_s)
+  end
+  def save_json
+    File.write(@destination_filename, @data.to_json)
   end
 end
 
@@ -51,11 +52,16 @@ class App
   def initialize
     @uri = ARGV[0]
     @destination_filename = ARGV[1]
+    @json = ARGV[2] || nil
   end
   def app_start
     fetcher = Fetcher.new(@uri)
     model = Model.new(fetcher.request(), @destination_filename)
-    model.save()
+    if @json
+      model.save_json()
+    else
+      model.save()
+    end
   end
 end
 
